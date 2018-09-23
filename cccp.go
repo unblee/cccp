@@ -115,10 +115,11 @@ func SetFromURLToFile(src, dst, name string) error {
 // name is the name displayed in the progress bar.
 // If name is empty, "src -> dst" is set.
 func SetFromFileToFile(src, dst, name string) error {
-	switch {
-	case src == "":
+	if src == "" {
 		return errors.New("src file path is empty")
-	case name == "":
+	}
+
+	if name == "" {
 		name = fmt.Sprintf("%s -> %s", src, dst)
 	}
 
