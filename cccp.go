@@ -141,7 +141,7 @@ func SetFromHTTPRequestToFile(src *http.Request, dst, name string) error {
 	}
 
 	if name == "" {
-		name = path.Base(src.RequestURI)
+		name = path.Base(src.URL.Path)
 	}
 
 	s, err := source.NewHTTPRequest(src)
