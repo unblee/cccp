@@ -6,6 +6,7 @@ package cccp
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
 	"sync"
@@ -124,6 +125,26 @@ func SetFromFileToFile(src, dst, name string) error {
 	}
 
 	s, err := source.NewFile(src)
+	if err != nil {
+		return err
+	}
+
+	return SetFromSourceToFile(s, dst, name)
+}
+
+// SetFromHTTPRequestToFile set the source http.Request and destination file path of the copy target.
+// name is the name displayed in the progress bar.
+// If name is empty, src URL base is set.
+func SetFromHTTPRequestToFile(src *http.Request, dst, name string) error {
+	if src == nil {
+		return errors.New("src http request is empty")
+	}
+
+	if name == "" {
+		name = path.Base(src.RequestURI)
+	}
+
+	s, err := source.NewHTTPRequest(src)
 	if err != nil {
 		return err
 	}
