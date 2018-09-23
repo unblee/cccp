@@ -6,6 +6,7 @@ package cccp
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
 	"sync"
@@ -53,9 +54,9 @@ func Run(ctx context.Context) error {
 	return mngr.composeErrors()
 }
 
-// SetFromReaderToWriter set the source and destination of the copy target.
+// SetFromSourceToDestination set the source and destination of the copy target.
 // name is the name displayed in the progress bar.
-func SetFromReaderToWriter(src source.Source, dst destination.Destination, name string) error {
+func SetFromSourceToDestination(src source.Source, dst destination.Destination, name string) error {
 	if name == "" {
 		return errors.New("name is empty")
 	}
@@ -70,15 +71,28 @@ func SetFromReaderToWriter(src source.Source, dst destination.Destination, name 
 	return nil
 }
 
+// SetFromSourceToFile set the source and destination file path of the copy target.
+// name is the name displayed in the progress bar.
+// If name is empty, src URL base is set.
+func SetFromSourceToFile(src source.Source, dst, name string) error {
+	if dst == "" {
+		return errors.New("dst file path is empty")
+	}
+
+	d, err := destination.NewFile(dst)
+	if err != nil {
+		return err
+	}
+
+	return SetFromSourceToDestination(src, d, name)
+}
+
 // SetFromURLToFile set the source URL and destination file path of the copy target.
 // name is the name displayed in the progress bar.
 // If name is empty, src URL base is set.
 func SetFromURLToFile(src, dst, name string) error {
-	switch {
-	case src == "":
+	if src == "" {
 		return errors.New("src URL is empty")
-	case dst == "":
-		return errors.New("dst file path is empty")
 	}
 
 	srcURL, err := url.Parse(src)
@@ -95,24 +109,18 @@ func SetFromURLToFile(src, dst, name string) error {
 		return err
 	}
 
-	d, err := destination.NewFile(dst)
-	if err != nil {
-		return err
-	}
-
-	return SetFromReaderToWriter(s, d, name)
+	return SetFromSourceToFile(s, dst, name)
 }
 
 // SetFromFileToFile set the source file path and destination file path of the copy target.
 // name is the name displayed in the progress bar.
 // If name is empty, "src -> dst" is set.
 func SetFromFileToFile(src, dst, name string) error {
-	switch {
-	case src == "":
-		return errors.New("src URL is empty")
-	case dst == "":
-		return errors.New("dst file path is empty")
-	case name == "":
+	if src == "" {
+		return errors.New("src file path is empty")
+	}
+
+	if name == "" {
 		name = fmt.Sprintf("%s -> %s", src, dst)
 	}
 
@@ -121,10 +129,25 @@ func SetFromFileToFile(src, dst, name string) error {
 		return err
 	}
 
-	d, err := destination.NewFile(dst)
+	return SetFromSourceToFile(s, dst, name)
+}
+
+// SetFromHTTPRequestToFile set the source http.Request and destination file path of the copy target.
+// name is the name displayed in the progress bar.
+// If name is empty, src URL base is set.
+func SetFromHTTPRequestToFile(src *http.Request, dst, name string) error {
+	if src == nil {
+		return errors.New("src http request is empty")
+	}
+
+	if name == "" {
+		name = path.Base(src.RequestURI)
+	}
+
+	s, err := source.NewHTTPRequest(src)
 	if err != nil {
 		return err
 	}
 
-	return SetFromReaderToWriter(s, d, name)
+	return SetFromSourceToFile(s, dst, name)
 }
