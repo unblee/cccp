@@ -70,15 +70,28 @@ func SetFromSourceToDestination(src source.Source, dst destination.Destination, 
 	return nil
 }
 
+// SetFromSourceToFile set the source and destination file path of the copy target.
+// name is the name displayed in the progress bar.
+// If name is empty, src URL base is set.
+func SetFromSourceToFile(src source.Source, dst, name string) error {
+	if dst == "" {
+		return errors.New("dst file path is empty")
+	}
+
+	d, err := destination.NewFile(dst)
+	if err != nil {
+		return err
+	}
+
+	return SetFromSourceToDestination(src, d, name)
+}
+
 // SetFromURLToFile set the source URL and destination file path of the copy target.
 // name is the name displayed in the progress bar.
 // If name is empty, src URL base is set.
 func SetFromURLToFile(src, dst, name string) error {
-	switch {
-	case src == "":
+	if src == "" {
 		return errors.New("src URL is empty")
-	case dst == "":
-		return errors.New("dst file path is empty")
 	}
 
 	srcURL, err := url.Parse(src)
@@ -95,12 +108,7 @@ func SetFromURLToFile(src, dst, name string) error {
 		return err
 	}
 
-	d, err := destination.NewFile(dst)
-	if err != nil {
-		return err
-	}
-
-	return SetFromSourceToDestination(s, d, name)
+	return SetFromSourceToFile(s, dst, name)
 }
 
 // SetFromFileToFile set the source file path and destination file path of the copy target.
@@ -109,9 +117,7 @@ func SetFromURLToFile(src, dst, name string) error {
 func SetFromFileToFile(src, dst, name string) error {
 	switch {
 	case src == "":
-		return errors.New("src URL is empty")
-	case dst == "":
-		return errors.New("dst file path is empty")
+		return errors.New("src file path is empty")
 	case name == "":
 		name = fmt.Sprintf("%s -> %s", src, dst)
 	}
@@ -121,10 +127,5 @@ func SetFromFileToFile(src, dst, name string) error {
 		return err
 	}
 
-	d, err := destination.NewFile(dst)
-	if err != nil {
-		return err
-	}
-
-	return SetFromSourceToDestination(s, d, name)
+	return SetFromSourceToFile(s, dst, name)
 }
