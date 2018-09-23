@@ -53,9 +53,9 @@ func Run(ctx context.Context) error {
 	return mngr.composeErrors()
 }
 
-// SetFromReaderToWriter set the source and destination of the copy target.
+// SetFromSourceToDestination set the source and destination of the copy target.
 // name is the name displayed in the progress bar.
-func SetFromReaderToWriter(src source.Source, dst destination.Destination, name string) error {
+func SetFromSourceToDestination(src source.Source, dst destination.Destination, name string) error {
 	if name == "" {
 		return errors.New("name is empty")
 	}
@@ -100,7 +100,7 @@ func SetFromURLToFile(src, dst, name string) error {
 		return err
 	}
 
-	return SetFromReaderToWriter(s, d, name)
+	return SetFromSourceToDestination(s, d, name)
 }
 
 // SetFromFileToFile set the source file path and destination file path of the copy target.
@@ -126,5 +126,5 @@ func SetFromFileToFile(src, dst, name string) error {
 		return err
 	}
 
-	return SetFromReaderToWriter(s, d, name)
+	return SetFromSourceToDestination(s, d, name)
 }
